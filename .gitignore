@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+*.pyc
+
+# Environment
+.env
+*.env.local
+
+# Data
+data/synthetic/transactions.csv
+data/synthetic/*.parquet
+*.csv
+!data/synthetic/.gitkeep
+
+# ML artifacts
+ml/models/*.pkl
+ml/models/*.joblib
+ml/models/*.json
+mlruns/
+
+# Node / React
+frontend/node_modules/
+frontend/build/
+frontend/.env
+
+# Docker
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
