@@ -9,13 +9,13 @@ Le pipeline analyse les transactions financières en quasi-temps réel, calcule 
 ## Architecture
 
 ```
-Transactions  →  Ingestion (Kafka)  →  Feature Engineering (Spark/dbt)
-                                                  ↓
-                                        Scoring ML (XGBoost)
-                                                  ↓
-                                    Alerting (Slack / Email)
-                                                  ↓
-                                  Interface Compliance (React)
+Transactions  →  Ingestion  →  Feature Engineering
+                                       ↓
+                                   Scoring ML
+                                       ↓
+                                   Alerting
+                                       ↓
+                             Interface Compliance
 ```
 
 ## Stack technique
@@ -101,12 +101,6 @@ python data/synthetic/generate_mock_data.py
 ```bash
 pytest tests/
 ```
-
-## Sprints
-
-- **Sprint 1 (MVP)** : Ingestion Kafka, Feature Engineering, Données synthétiques, Validation
-- Sprint 2 : Entraînement ML V1, API Scoring
-- Sprint 3 : Alerting, Interface Compliance
 
 ## Conventions
 
