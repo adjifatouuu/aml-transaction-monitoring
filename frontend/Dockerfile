@@ -1,7 +1,7 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm config set strict-ssl false && npm install
 
 FROM node:20-alpine AS dev
 WORKDIR /app
