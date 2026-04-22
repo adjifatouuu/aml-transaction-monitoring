@@ -1,0 +1,136 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "aml-transaction-monitoring/ingestion/schemas/transaction_schema.json",
+  "title": "AML Transaction",
+  "description": "Contrat de données pour les transactions financières UEMOA/BCEAO soumises au pipeline AML.",
+  "type": "object",
+  "required": [
+    "transaction_id",
+    "step",
+    "type",
+    "amount_xof",
+    "sender_account_id",
+    "sender_bank_country",
+    "sender_bank_code",
+    "receiver_account_id",
+    "receiver_bank_country",
+    "receiver_bank_code",
+    "old_balance_sender",
+    "old_balance_receiver",
+    "new_balance_sender",
+    "new_balance_receiver",
+    "txn_timestamp",
+    "hour_of_day",
+    "day_of_week"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "transaction_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Identifiant unique de la transaction.",
+      "examples": ["txn-abc-123", "3fa85f64-5717-4562-b3fc-2c963f66afa6"]
+    },
+    "step": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Étape de simulation (unité = 1 heure). 0 = début de simulation.",
+      "examples": [0, 12, 743]
+    },
+    "type": {
+      "type": "string",
+      "enum": ["VIREMENT", "RETRAIT", "DEPOT"],
+      "description": "Nature de l'opération financière (en majuscules)."
+    },
+    "amount_xof": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Montant de la transaction en Francs CFA (XOF). Doit être strictement positif.",
+      "examples": [250000.0, 1500000.50]
+    },
+    "sender_account_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Identifiant du compte émetteur.",
+      "examples": ["SN1234567890"]
+    },
+    "sender_bank_country": {
+      "type": "string",
+      "pattern": "^[A-Z]{2}$",
+      "description": "Code pays ISO 3166-1 alpha-2 de la banque émettrice.",
+      "examples": ["SN", "CI", "ML", "BF", "TG", "BJ", "NE", "GW"]
+    },
+    "sender_bank_code": {
+      "type": "string",
+      "minLength": 2,
+      "description": "Code de la banque émettrice.",
+      "examples": ["CBAO", "SGBS", "BIS"]
+    },
+    "receiver_account_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Identifiant du compte récepteur.",
+      "examples": ["CI9876543210"]
+    },
+    "receiver_bank_country": {
+      "type": "string",
+      "pattern": "^[A-Z]{2}$",
+      "description": "Code pays ISO 3166-1 alpha-2 de la banque réceptrice.",
+      "examples": ["SN", "CI", "ML", "BF", "TG", "BJ", "NE", "GW"]
+    },
+    "receiver_bank_code": {
+      "type": "string",
+      "minLength": 2,
+      "description": "Code de la banque réceptrice.",
+      "examples": ["NSIA", "BOA", "UBA"]
+    },
+    "old_balance_sender": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Solde de l'émetteur avant la transaction (XOF).",
+      "examples": [500000.0]
+    },
+    "old_balance_receiver": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Solde du récepteur avant la transaction (XOF).",
+      "examples": [1200000.0]
+    },
+    "new_balance_sender": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Solde de l'émetteur après la transaction (XOF).",
+      "examples": [250000.0]
+    },
+    "new_balance_receiver": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Solde du récepteur après la transaction (XOF).",
+      "examples": [1450000.0]
+    },
+    "txn_timestamp": {
+      "type": "string",
+      "description": "Horodatage de la transaction. Format accepté : 'YYYY-MM-DD HH:MM' ou ISO 8601.",
+      "examples": ["4/21/2024 14:35", "2025-04-22T10:35:00Z"]
+    },
+    "hour_of_day": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 23,
+      "description": "Heure de la journée extraite du timestamp (0-23).",
+      "examples": [14, 0, 23]
+    },
+    "day_of_week": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 6,
+      "description": "Jour de la semaine extrait du timestamp (0 = lundi, 6 = dimanche).",
+      "examples": [0, 4, 6]
+    },
+    "channel": {
+      "type": "string",
+      "enum": ["mobile_money", "cbs", "swift"],
+      "description": "Canal utilisé pour la transaction (optionnel)."
+    }
+  }
+}
