@@ -1,5 +1,5 @@
-import alerts from '../mocks/alerts.json';
-import transactions from '../mocks/transactions.json';
+import { useState, useEffect } from 'react';
+import { fetchAlerts, fetchTransactions } from '../services/api';
 import Card from '../components/ui/Card';
 import PageHeader from '../components/ui/PageHeader';
 import {
@@ -9,25 +9,47 @@ import {
   FlagIcon,
 } from '@heroicons/react/24/outline';
 
-const totalAlerts     = alerts.length;
-const criticalAlerts  = alerts.filter(a => a.risk_level === 'critique').length;
-const avgScore        = (transactions.reduce((s, t) => s + t.score, 0) / transactions.length).toFixed(2);
-const flaggedTx       = transactions.filter(t => t.label === 1).length;
-
-const KPIS = [
-  { label: 'Total alertes',       value: totalAlerts,    Icon: BellAlertIcon,          color: 'text-brand-500' },
-  { label: 'Alertes critiques',   value: criticalAlerts, Icon: ExclamationTriangleIcon, color: 'text-red-500' },
-  { label: 'Score moyen',         value: avgScore,       Icon: ChartBarIcon,            color: 'text-amber-500' },
-  { label: 'Transactions suspectes', value: flaggedTx,   Icon: FlagIcon,               color: 'text-orange-500' },
-];
-
 export default function DashboardPage() {
+  const [alerts, setAlerts]           = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [error, setError]             = useState(null);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    Promise.all([fetchAlerts(), fetchTransactions()])
+      .then(([a, t]) => { setAlerts(a); setTransactions(t); })
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const totalAlerts    = alerts.length;
+  const criticalAlerts = alerts.filter(a => a.risk_level === 'critique').length;
+  const avgScore       = transactions.length > 0
+    ? (transactions.reduce((s, t) => s + t.score, 0) / transactions.length).toFixed(2)
+    : '—';
+  const flaggedTx      = transactions.filter(t => t.label === 1).length;
+
+  const KPIS = [
+    { label: 'Total alertes',          value: loading ? '…' : totalAlerts,    Icon: BellAlertIcon,           color: 'text-brand-500' },
+    { label: 'Alertes critiques',      value: loading ? '…' : criticalAlerts, Icon: ExclamationTriangleIcon, color: 'text-red-500' },
+    { label: 'Score moyen',            value: loading ? '…' : avgScore,       Icon: ChartBarIcon,            color: 'text-amber-500' },
+    { label: 'Transactions suspectes', value: loading ? '…' : flaggedTx,      Icon: FlagIcon,                color: 'text-orange-500' },
+  ];
+
   return (
     <div>
       <PageHeader
         title="Dashboard"
         subtitle="Vue d'ensemble — période courante"
       />
+
+      {error && (
+        <div className="mb-4 p-4 rounded-lg border border-red-200 bg-red-50">
+          <p className="text-sm text-red-600">⚠ Impossible de charger les données : {error}</p>
+        </div>
+      )}
 
       {/* KPIs */}
       <div className="grid grid-cols-4 gap-4 mb-6">

@@ -2,25 +2,29 @@
 API de scoring AML — FastAPI.
 
 Endpoints :
-    GET  /health        → statut du service + version du modèle
-    POST /score         → score de risque pour une transaction brute
-    POST /score/batch   → score pour un lot de transactions
+    GET  /health                  → statut du service + version du modèle
+    GET  /alerts                  → liste des alertes (filtrable)
+    GET  /transactions            → liste des transactions (paginable)
+    GET  /transactions/{id}       → détail d'une transaction
+    POST /score                   → score de risque pour une transaction brute
+    POST /score/batch             → score pour un lot de transactions
 
 Usage (via Docker) :
     docker-compose up -d scoring-api
     curl http://localhost:8000/health
 """
 
+import json
 import os
 import pickle
 import sys
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from typing import Optional
 
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
 
@@ -33,8 +37,9 @@ from feature_engineering.pipeline import compute_features, get_feature_columns
 # Configuration
 # ---------------------------------------------------------------------------
 
-MODEL_PATH    = os.environ.get("MODEL_PATH",    "ml/models/xgboost_v1.pkl")
+MODEL_PATH     = os.environ.get("MODEL_PATH",    "ml/models/xgboost_v1.pkl")
 RISK_THRESHOLD = float(os.environ.get("RISK_THRESHOLD", "0.5"))
+SEEDS_DIR      = os.path.join(os.path.dirname(__file__), "seeds")
 
 # ---------------------------------------------------------------------------
 # État global (chargé au démarrage)
@@ -45,7 +50,8 @@ _state: dict = {}
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Charge le modèle une seule fois au démarrage du serveur."""
+    """Charge le modèle et les seeds au démarrage du serveur."""
+    # Modèle ML
     print(f"[startup] Chargement du modèle depuis {MODEL_PATH}...")
     try:
         with open(MODEL_PATH, "rb") as f:
@@ -57,6 +63,18 @@ async def lifespan(app: FastAPI):
     except FileNotFoundError:
         print(f"[startup] AVERTISSEMENT : modèle non trouvé à {MODEL_PATH}")
         print("[startup] L'endpoint /score retournera 503 jusqu'au chargement du modèle.")
+
+    # Seeds (alertes + transactions)
+    for key, filename in [("alerts", "alerts.json"), ("transactions", "transactions.json")]:
+        seed_path = os.path.join(SEEDS_DIR, filename)
+        try:
+            with open(seed_path, encoding="utf-8") as f:
+                _state[key] = json.load(f)
+            print(f"[startup] Seeds '{key}' chargées — {len(_state[key])} entrées")
+        except FileNotFoundError:
+            print(f"[startup] AVERTISSEMENT : seed non trouvée à {seed_path}")
+            _state[key] = []
+
     yield
     _state.clear()
 
@@ -81,7 +99,7 @@ app.add_middleware(
 
 
 # ---------------------------------------------------------------------------
-# Schémas Pydantic
+# Schémas Pydantic — Scoring
 # ---------------------------------------------------------------------------
 
 class TransactionIn(BaseModel):
@@ -142,6 +160,39 @@ class BatchOut(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Schémas Pydantic — Données (alertes / transactions)
+# ---------------------------------------------------------------------------
+
+class AlertOut(BaseModel):
+    alert_id:       str
+    transaction_id: str
+    account_id:     str
+    amount:         float
+    currency:       str
+    score:          float
+    risk_level:     str
+    status:         str
+    created_at:     str
+    assigned_to:    Optional[str]
+    flags:          list[str]
+
+
+class TransactionOut(BaseModel):
+    transaction_id:   str
+    account_id:       str
+    receiver_id:      str
+    amount:           float
+    currency:         str
+    timestamp:        str
+    transaction_type: str
+    channel:          str
+    sender_country:   str
+    receiver_country: str
+    score:            float
+    label:            int
+
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
@@ -177,7 +228,7 @@ def _predict(transactions: list[dict]) -> list[float]:
 
 
 # ---------------------------------------------------------------------------
-# Endpoints
+# Endpoints — Monitoring
 # ---------------------------------------------------------------------------
 
 @app.get("/health", tags=["Monitoring"])
@@ -192,6 +243,63 @@ def health():
         "timestamp":    datetime.utcnow().isoformat(),
     }
 
+
+# ---------------------------------------------------------------------------
+# Endpoints — Données
+# ---------------------------------------------------------------------------
+
+@app.get("/alerts", response_model=list[AlertOut], tags=["Données"])
+def get_alerts(
+    status:     Optional[str] = Query(None, description="ouverte | en_cours | clôturée"),
+    risk_level: Optional[str] = Query(None, description="critique | élevé | moyen | faible"),
+    days:       int           = Query(30,   description="Fenêtre temporelle en jours"),
+):
+    """
+    Retourne la liste des alertes, filtrables par statut, niveau de risque et période.
+    """
+    alerts = _state.get("alerts", [])
+
+    # Filtre temporel
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    alerts = [
+        a for a in alerts
+        if datetime.fromisoformat(a["created_at"].replace("Z", "+00:00")) >= cutoff
+    ]
+
+    if status:
+        alerts = [a for a in alerts if a["status"] == status]
+    if risk_level:
+        alerts = [a for a in alerts if a["risk_level"] == risk_level]
+
+    return alerts
+
+
+@app.get("/transactions", response_model=list[TransactionOut], tags=["Données"])
+def get_transactions(
+    limit:      int           = Query(100, ge=1, le=500, description="Nombre max de transactions"),
+    offset:     int           = Query(0,   ge=0,          description="Décalage pour la pagination"),
+    account_id: Optional[str] = Query(None,               description="Filtrer par compte émetteur"),
+):
+    """Retourne la liste paginée des transactions, filtrables par compte émetteur."""
+    txs = _state.get("transactions", [])
+    if account_id:
+        txs = [t for t in txs if t["account_id"] == account_id]
+    return txs[offset : offset + limit]
+
+
+@app.get("/transactions/{transaction_id}", response_model=TransactionOut, tags=["Données"])
+def get_transaction(transaction_id: str):
+    """Retourne le détail d'une transaction par son identifiant."""
+    txs = _state.get("transactions", [])
+    tx = next((t for t in txs if t["transaction_id"] == transaction_id), None)
+    if tx is None:
+        raise HTTPException(status_code=404, detail=f"Transaction '{transaction_id}' introuvable.")
+    return tx
+
+
+# ---------------------------------------------------------------------------
+# Endpoints — Scoring
+# ---------------------------------------------------------------------------
 
 @app.post("/score", response_model=ScoreOut, tags=["Scoring"])
 def score_transaction(transaction: TransactionIn):
