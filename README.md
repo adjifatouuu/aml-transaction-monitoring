@@ -35,15 +35,24 @@ Transactions  →  Ingestion  →  Feature Engineering
 
 ```json
 {
-  "transaction_id"   : "string (UUID)",
-  "account_id"       : "string",
-  "receiver_id"      : "string",
-  "amount"           : "float (XOF)",
-  "timestamp"        : "datetime ISO 8601",
-  "transaction_type" : "virement | retrait | depot",
-  "channel"          : "mobile_money | cbs | swift",
-  "sender_country"   : "ISO 3166 (ex: SN, CI, ML)",
-  "receiver_country" : "ISO 3166"
+  "transaction_id"        : "string",
+  "step"                  : "integer (≥ 0, étape de simulation, 1 step = 1h)",
+  "type"                  : "VIREMENT | RETRAIT | DEPOT",
+  "amount_xof"            : "float (XOF, > 0)",
+  "sender_account_id"     : "string",
+  "sender_bank_country"   : "ISO 3166 alpha-2 (ex: SN, CI, ML)",
+  "sender_bank_code"      : "string (ex: CBAO, SGBS, ORANGE_SN)",
+  "receiver_account_id"   : "string",
+  "receiver_bank_country" : "ISO 3166 alpha-2",
+  "receiver_bank_code"    : "string",
+  "old_balance_sender"    : "float (XOF, solde émetteur avant)",
+  "old_balance_receiver"  : "float (XOF, solde récepteur avant)",
+  "new_balance_sender"    : "float (XOF, solde émetteur après)",
+  "new_balance_receiver"  : "float (XOF, solde récepteur après)",
+  "txn_timestamp"         : "string (M/D/YYYY HH:MM ou ISO 8601)",
+  "hour_of_day"           : "integer (0-23)",
+  "day_of_week"           : "integer (0 = lundi, 6 = dimanche)",
+  "channel"               : "mobile_money | cbs | swift (optionnel)"
 }
 ```
 

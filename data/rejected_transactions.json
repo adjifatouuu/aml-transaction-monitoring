@@ -1,0 +1,60 @@
+[
+  {
+    "transaction_id": "txn-abc-123",
+    "rejected_at": "2026-04-22T11:52:10.977873+00:00",
+    "errors": [
+      "Schema error: -500.0 is less than or equal to the minimum of 0",
+      "amount_xof doit être > 0, reçu : -500.0",
+      "transaction_id dupliqué : 'txn-abc-123'",
+      "Incohérence solde émetteur : old=500000.0 - amount=-500.0 = 500500.00, mais new_balance_sender=250000.0"
+    ],
+    "raw": {
+      "transaction_id": "txn-abc-123",
+      "step": 0,
+      "type": "VIREMENT",
+      "amount_xof": -500.0,
+      "sender_account_id": "SN1234567890",
+      "sender_bank_country": "SN",
+      "sender_bank_code": "CBAO",
+      "receiver_account_id": "CI9876543210",
+      "receiver_bank_country": "CI",
+      "receiver_bank_code": "NSIA",
+      "old_balance_sender": 500000.0,
+      "old_balance_receiver": 1200000.0,
+      "new_balance_sender": 250000.0,
+      "new_balance_receiver": 1450000.0,
+      "txn_timestamp": "4/21/2024 14:35",
+      "hour_of_day": 14,
+      "day_of_week": 0
+    }
+  },
+  {
+    "transaction_id": "txn-abc-123",
+    "rejected_at": "2026-04-22T11:55:36.182039+00:00",
+    "errors": [
+      "Schema error: -500.0 is less than or equal to the minimum of 0",
+      "amount_xof doit être > 0, reçu : -500.0",
+      "transaction_id dupliqué : 'txn-abc-123'",
+      "Incohérence solde émetteur : old=500000.0 - amount=-500.0 = 500500.00, mais new_balance_sender=250000.0"
+    ],
+    "raw": {
+      "transaction_id": "txn-abc-123",
+      "step": 0,
+      "type": "VIREMENT",
+      "amount_xof": -500.0,
+      "sender_account_id": "SN1234567890",
+      "sender_bank_country": "SN",
+      "sender_bank_code": "CBAO",
+      "receiver_account_id": "CI9876543210",
+      "receiver_bank_country": "CI",
+      "receiver_bank_code": "NSIA",
+      "old_balance_sender": 500000.0,
+      "old_balance_receiver": 1200000.0,
+      "new_balance_sender": 250000.0,
+      "new_balance_receiver": 1450000.0,
+      "txn_timestamp": "4/21/2024 14:35",
+      "hour_of_day": 14,
+      "day_of_week": 0
+    }
+  }
+]
