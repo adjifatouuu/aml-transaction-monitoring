@@ -76,12 +76,19 @@ services:
     stdin_open: true
 
   scoring-api:
-    # Dockerfile ml/api/ non encore créé — sera activé en Sprint 2
-    image: python:3.11-slim
+    build:
+      context: .
+      dockerfile: ml/api/Dockerfile
     container_name: aml-scoring-api
-    command: python -c "import http.server; http.server.test(HandlerClass=http.server.BaseHTTPRequestHandler, port=8000)"
     ports:
       - "8000:8000"
+    volumes:
+      - ./ml:/app/ml
+      - ./feature_engineering:/app/feature_engineering
+    environment:
+      - MODEL_PATH=ml/models/xgboost_v1.pkl
+      - RISK_THRESHOLD=0.5
+      - PYTHONPATH=/app
 
 volumes:
   minio_data:
