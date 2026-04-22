@@ -1,7 +1,7 @@
 [
   {
     "alert_id": "ALR-2024-0001",
-    "transaction_id": "TXN-20240115-001",
+    "transaction_id": "TXN-1001",
     "account_id": "SN-BK-00423",
     "amount": 4750000,
     "currency": "XOF",
@@ -14,7 +14,7 @@
   },
   {
     "alert_id": "ALR-2024-0002",
-    "transaction_id": "TXN-20240115-008",
+    "transaction_id": "TXN-1002",
     "account_id": "ML-BK-00187",
     "amount": 9200000,
     "currency": "XOF",
@@ -27,7 +27,7 @@
   },
   {
     "alert_id": "ALR-2024-0003",
-    "transaction_id": "TXN-20240114-031",
+    "transaction_id": "TXN-1003",
     "account_id": "CI-BK-00654",
     "amount": 2100000,
     "currency": "XOF",
@@ -40,7 +40,7 @@
   },
   {
     "alert_id": "ALR-2024-0004",
-    "transaction_id": "TXN-20240114-019",
+    "transaction_id": "TXN-1004",
     "account_id": "SN-BK-00891",
     "amount": 3650000,
     "currency": "XOF",
@@ -53,7 +53,7 @@
   },
   {
     "alert_id": "ALR-2024-0005",
-    "transaction_id": "TXN-20240113-044",
+    "transaction_id": "TXN-1005",
     "account_id": "GN-BK-00312",
     "amount": 875000,
     "currency": "XOF",
@@ -66,7 +66,7 @@
   },
   {
     "alert_id": "ALR-2024-0006",
-    "transaction_id": "TXN-20240113-011",
+    "transaction_id": "TXN-1006",
     "account_id": "SN-BK-00423",
     "amount": 1450000,
     "currency": "XOF",
@@ -79,7 +79,7 @@
   },
   {
     "alert_id": "ALR-2024-0007",
-    "transaction_id": "TXN-20240112-027",
+    "transaction_id": "TXN-1007",
     "account_id": "CI-BK-00201",
     "amount": 320000,
     "currency": "XOF",
@@ -92,7 +92,7 @@
   },
   {
     "alert_id": "ALR-2024-0008",
-    "transaction_id": "TXN-20240112-003",
+    "transaction_id": "TXN-1008",
     "account_id": "ML-BK-00099",
     "amount": 180000,
     "currency": "XOF",

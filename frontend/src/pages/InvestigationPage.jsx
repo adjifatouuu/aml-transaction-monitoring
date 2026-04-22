@@ -1,9 +1,18 @@
+<<<<<<< HEAD
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchTransaction, fetchTransactions } from '../services/api';
+=======
+import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+>>>>>>> ad8b8c3a46cc3b1517650ac40fb4743603de270d
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import PageHeader from '../components/ui/PageHeader';
+import {
+  getTransactionById,
+  getRelatedTransactions
+} from '../services/investigationService';
 
 // ---------------------------------------------------------------------------
 // Données contextuelles par type de transaction
@@ -67,18 +76,33 @@ function formatAmount(amount) {
 
 function formatDate(iso) {
   return new Date(iso).toLocaleString('fr-FR', {
+<<<<<<< HEAD
     day: '2-digit', month: '2-digit', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
+=======
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+>>>>>>> ad8b8c3a46cc3b1517650ac40fb4743603de270d
   });
 }
 
 function KV({ label, value, highlight }) {
   return (
+<<<<<<< HEAD
     <div className="flex justify-between items-start py-2 border-b border-slate-100 last:border-0 gap-4">
       <span className="text-sm text-slate-500 flex-shrink-0">{label}</span>
       <span className={`text-sm font-medium text-right ${highlight ? 'text-amber-700' : 'text-slate-800'}`}>
         {value}
       </span>
+=======
+    <div className="flex justify-between py-2 border-b border-slate-100 last:border-0 gap-4">
+      <span className="text-sm text-slate-500">{label}</span>
+      <span className="text-sm font-medium text-slate-800 text-right">{value ?? '-'}</span>
+>>>>>>> ad8b8c3a46cc3b1517650ac40fb4743603de270d
     </div>
   );
 }
@@ -104,6 +128,7 @@ function ScoreBar({ score }) {
 // ---------------------------------------------------------------------------
 
 export default function InvestigationPage() {
+<<<<<<< HEAD
   const { id }       = useParams();
   const navigate     = useNavigate();
   const [tx, setTx]               = useState(null);
@@ -152,11 +177,58 @@ export default function InvestigationPage() {
         <PageHeader title="Investigation" subtitle="Erreur" />
         <Card className="p-6 border border-red-200 bg-red-50">
           <p className="text-sm text-red-600">⚠ {error ?? 'Transaction introuvable.'}</p>
+=======
+  const { id } = useParams();
+
+  const [tx, setTx] = useState(null);
+  const [relatedTx, setRelatedTx] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [errorCode, setErrorCode] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function load() {
+      try {
+        setLoading(true);
+        setErrorCode(null);
+
+        const transaction = await getTransactionById(id);
+        const related = await getRelatedTransactions(
+          transaction.account_id,
+          transaction.transaction_id
+        );
+
+        if (!isMounted) return;
+        setTx(transaction);
+        setRelatedTx(related);
+      } catch (e) {
+        if (!isMounted) return;
+        setErrorCode(e.message || 'UNKNOWN_ERROR');
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      isMounted = false;
+    };
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div>
+        <PageHeader title="Investigation" subtitle="Chargement..." />
+        <Card className="p-6">
+          <p className="text-sm text-slate-500">Chargement de la transaction…</p>
+>>>>>>> ad8b8c3a46cc3b1517650ac40fb4743603de270d
         </Card>
       </div>
     );
   }
 
+<<<<<<< HEAD
   const level    = scoreToLevel(tx.score);
   const typeInfo = TYPE_INFO[tx.transaction_type?.toLowerCase()] ?? {
     label: tx.transaction_type, context: '', cls: 'text-slate-700 bg-slate-50 border-slate-200',
@@ -169,18 +241,32 @@ export default function InvestigationPage() {
     : null;
   const highRiskCount = history.filter(t => t.score >= 0.7).length;
   const countries     = [...new Set(history.map(t => t.receiver_country))];
+=======
+  if (errorCode || !tx) {
+    return (
+      <div>
+        <PageHeader title="Investigation" subtitle="Transaction introuvable" />
+        <Card className="p-6">
+          <p className="text-sm text-slate-500">
+            Aucune transaction ne correspond à l’identifiant demandé.
+          </p>
+        </Card>
+      </div>
+    );
+  }
+
+  const level = scoreToLevel(tx.score);
+>>>>>>> ad8b8c3a46cc3b1517650ac40fb4743603de270d
 
   return (
     <div>
-      <PageHeader
-        title="Investigation"
-        subtitle={`Transaction ${tx.transaction_id}`}
-      />
+      <PageHeader title="Investigation" subtitle={`Transaction suspecte ${tx.transaction_id}`} />
 
       {/* ------------------------------------------------------------------ */}
       {/* Ligne 1 — 3 cartes principales                                       */}
       {/* ------------------------------------------------------------------ */}
       <div className="grid grid-cols-3 gap-4">
+<<<<<<< HEAD
 
         {/* Détails transaction */}
         <Card className="p-5">
@@ -204,9 +290,20 @@ export default function InvestigationPage() {
               ⚠ Transaction effectuée en dehors des heures ouvrables
             </p>
           )}
+=======
+        <Card className="p-5">
+          <h2 className="text-sm font-semibold text-slate-700 mb-3">Détails transaction</h2>
+          <KV label="ID transaction" value={tx.transaction_id} />
+          <KV label="Compte" value={tx.account_id} />
+          <KV label="Montant" value={formatAmount(tx.amount)} />
+          <KV label="Type" value={tx.transaction_type} />
+          <KV label="Canal" value={tx.channel} />
+          <KV label="Date / Heure" value={formatDate(tx.timestamp)} />
+          <KV label="Pays émetteur" value={tx.sender_country} />
+          <KV label="Pays récepteur" value={tx.receiver_country} />
+>>>>>>> ad8b8c3a46cc3b1517650ac40fb4743603de270d
         </Card>
 
-        {/* Parties */}
         <Card className="p-5">
           <h2 className="text-sm font-semibold text-slate-700 mb-3">Parties</h2>
           <div className="mb-4">
@@ -226,6 +323,7 @@ export default function InvestigationPage() {
           )}
         </Card>
 
+<<<<<<< HEAD
         {/* Score */}
         <Card className="p-5">
           <h2 className="text-sm font-semibold text-slate-700 mb-3">Score de risque</h2>
@@ -317,14 +415,41 @@ export default function InvestigationPage() {
             Aucune autre transaction connue pour ce compte.
           </p>
         ) : (
+=======
+        <Card className="p-5 flex flex-col items-center justify-center text-center">
+          <h2 className="text-sm font-semibold text-slate-700 mb-4">Score de risque</h2>
+          <p className="text-5xl font-bold text-slate-900 tabular-nums mb-3">{tx.score.toFixed(2)}</p>
+          <Badge level={level} size="md" />
+          <p className="text-xs text-slate-500 mt-3">Score ML compris entre 0 et 1</p>
+        </Card>
+      </div>
+
+      <Card className="mt-4 p-6">
+        <h2 className="text-sm font-semibold text-slate-700 mb-3">Explication du score ML</h2>
+        <p className="text-sm text-slate-600 leading-6">
+          {tx.explanation || 'Aucune explication disponible pour cette transaction.'}
+        </p>
+      </Card>
+
+      <Card className="mt-4 p-6">
+        <h2 className="text-sm font-semibold text-slate-700 mb-4">Top 3 features déclenchantes</h2>
+        {tx.top_features?.length ? (
+>>>>>>> ad8b8c3a46cc3b1517650ac40fb4743603de270d
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr>
+<<<<<<< HEAD
                   {['Date', 'Montant', 'Type', 'Récepteur', 'Pays dest.', 'Score', 'Niveau'].map(col => (
                     <th
                       key={col}
                       className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 py-2 text-left bg-slate-50 border-b border-slate-200"
+=======
+                  {['Rang', 'Feature', 'Valeur', 'Impact', 'Interprétation'].map(col => (
+                    <th
+                      key={col}
+                      className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3 text-left bg-slate-50 border-b border-slate-200"
+>>>>>>> ad8b8c3a46cc3b1517650ac40fb4743603de270d
                     >
                       {col}
                     </th>
@@ -332,6 +457,7 @@ export default function InvestigationPage() {
                 </tr>
               </thead>
               <tbody>
+<<<<<<< HEAD
                 {[...history]
                   .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
                   .map(t => (
@@ -369,6 +495,37 @@ export default function InvestigationPage() {
               </tbody>
             </table>
           </div>
+=======
+                {tx.top_features.slice(0, 3).map((feature, index) => (
+                  <tr key={`${feature.name}-${index}`} className="hover:bg-slate-50">
+                    <td className="px-4 py-3 text-sm border-b border-slate-100">{index + 1}</td>
+                    <td className="px-4 py-3 text-sm font-mono border-b border-slate-100">{feature.name}</td>
+                    <td className="px-4 py-3 text-sm border-b border-slate-100">{feature.value}</td>
+                    <td className="px-4 py-3 text-sm font-semibold border-b border-slate-100">+{feature.impact}</td>
+                    <td className="px-4 py-3 text-sm text-slate-600 border-b border-slate-100">{feature.label}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-sm text-slate-400 italic">Aucune feature explicative disponible.</p>
+        )}
+      </Card>
+
+      <Card className="mt-4 p-6">
+        <h2 className="text-sm font-semibold text-slate-700 mb-3">Historique des transactions liées</h2>
+        {relatedTx.length ? (
+          <ul className="space-y-2">
+            {relatedTx.map(t => (
+              <li key={t.transaction_id} className="text-sm text-slate-600">
+                {t.transaction_id} — {formatAmount(t.amount)} — {formatDate(t.timestamp)}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-slate-400 italic">Aucune transaction liée trouvée.</p>
+>>>>>>> ad8b8c3a46cc3b1517650ac40fb4743603de270d
         )}
       </Card>
     </div>
